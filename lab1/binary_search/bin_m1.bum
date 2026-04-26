@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<org.eventb.core.machineFile org.eventb.core.configuration="org.eventb.core.fwd" org.eventb.texttools.text_lastmodified="1361818393399" org.eventb.texttools.text_representation="machine bin_m1 refines bin_m0  sees bin_c0&#10;&#10;variables r p q&#10;&#10;invariants&#10;  @inv1 p ∈ 1‥n&#10;  @inv2 q ∈ 1‥n&#10;  @inv3 r ∈ p‥q&#10;  @inv4 v ∈ f[p‥q]&#10;&#10;variant q−p&#10;&#10;events&#10;  event INITIALISATION&#10;    then&#10;      @act1 p ≔ 1&#10;      @act2 q ≔ n&#10;      @act3 r :∈ 1‥n&#10;  end&#10;&#10;  event found refines found&#10;    where&#10;      @grd1 f(r) = v&#10;  end&#10;&#10;  convergent event inc refines progress&#10;    where&#10;      @grd1 f(r)&lt;v&#10;    then&#10;      @act1 p ≔ r+1&#10;      @act2 r:∈r+1‥q&#10;  end&#10;&#10;  convergent event dec refines progress&#10;    where&#10;      @grd1 f(r)&gt;v&#10;    then&#10;      @act1 q ≔ r−1&#10;      @act2 r :∈ p‥r−1&#10;  end&#10;end&#10;" version="5">
+<org.eventb.core.refinesMachine name="_ObweoH90EeKVxu6rcf2ekw" org.eventb.core.target="bin_m0"/>
+<org.eventb.core.seesContext name="_ObweoX90EeKVxu6rcf2ekw" org.eventb.core.target="bin_c0"/>
+<org.eventb.core.variable name="internal_element1" org.eventb.core.identifier="r"/>
+<org.eventb.core.variable name="internal_element2" org.eventb.core.identifier="p"/>
+<org.eventb.core.variable name="internal_element3" org.eventb.core.identifier="q"/>
+<org.eventb.core.invariant name="internal_element1I" org.eventb.core.label="inv1" org.eventb.core.predicate="p ∈ 1‥n"/>
+<org.eventb.core.invariant name="internal_element2I" org.eventb.core.label="inv2" org.eventb.core.predicate="q ∈ 1‥n"/>
+<org.eventb.core.invariant name="internal_element3I" org.eventb.core.label="inv3" org.eventb.core.predicate="r ∈ p‥q"/>
+<org.eventb.core.invariant name="internal_element4I" org.eventb.core.label="inv4" org.eventb.core.predicate="v ∈ f[p‥q]"/>
+<org.eventb.core.variant name="internal_element1" org.eventb.core.expression="q−p"/>
+<org.eventb.core.event name="internal_evt1" org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="INITIALISATION">
+<org.eventb.core.action name="internal_element2" org.eventb.core.assignment="p ≔ 1" org.eventb.core.label="act1"/>
+<org.eventb.core.action name="internal_element3" org.eventb.core.assignment="q ≔ n" org.eventb.core.label="act2"/>
+<org.eventb.core.action name="internal_element4" org.eventb.core.assignment="r :∈ 1‥n" org.eventb.core.label="act3"/>
+</org.eventb.core.event>
+<org.eventb.core.event name="internal_element2" org.eventb.core.convergence="1" org.eventb.core.extended="false" org.eventb.core.label="inc">
+<org.eventb.core.refinesEvent name="_ObxswH90EeKVxu6rcf2ekw" org.eventb.core.target="progress"/>
+<org.eventb.core.guard name="internal_element1" org.eventb.core.label="grd1" org.eventb.core.predicate="f(r)&lt;v"/>
+<org.eventb.core.action name="internal_element1" org.eventb.core.assignment="p ≔ r+1" org.eventb.core.label="act1"/>
+<org.eventb.core.action name="internal_element2" org.eventb.core.assignment="r:∈r+1‥q" org.eventb.core.label="act2"/>
+</org.eventb.core.event>
+<org.eventb.core.event name="internal_element3" org.eventb.core.convergence="1" org.eventb.core.extended="false" org.eventb.core.label="dec">
+<org.eventb.core.refinesEvent name="_ObyT0H90EeKVxu6rcf2ekw" org.eventb.core.target="progress"/>
+<org.eventb.core.guard name="internal_element1" org.eventb.core.label="grd1" org.eventb.core.predicate="f(r)&gt;v"/>
+<org.eventb.core.action name="internal_element1" org.eventb.core.assignment="q ≔ r−1" org.eventb.core.label="act1"/>
+<org.eventb.core.action name="internal_element2" org.eventb.core.assignment="r :∈ p‥r−1" org.eventb.core.label="act2"/>
+</org.eventb.core.event>
+<org.eventb.core.event name="_Oby64H90EeKVxu6rcf2ekw" org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="found">
+<org.eventb.core.refinesEvent name="_Oby64X90EeKVxu6rcf2ekw" org.eventb.core.target="found"/>
+<org.eventb.core.guard name="_Oby64n90EeKVxu6rcf2ekw" org.eventb.core.label="grd1" org.eventb.core.predicate="f(r) = v"/>
+</org.eventb.core.event>
+</org.eventb.core.machineFile>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<org.eventb.core.contextFile org.eventb.core.configuration="org.eventb.core.fwd" org.eventb.texttools.text_lastmodified="1377699405475" org.eventb.texttools.text_representation="context bin_c0&#10;&#10;sets MYGAGASET&#10;constants n f v&#10;&#10;axioms&#10;  @axm1 f ∈ 1‥n → ℕ&#10;  @axm2 ∀i,j· i∈1‥n ∧&#10;        j∈1‥n ∧&#10;        i≤j&#10;        ⇒&#10;        f(i)≤f(j)&#10;  @axm3 v ∈ ran(f)&#10;  theorem @thm1 n ≥ 1&#10;end&#10;" version="3">
+<org.eventb.core.axiom name="internal_element1A" org.eventb.core.label="axm1" org.eventb.core.predicate="f ∈ 1‥n → ℕ"/>
+<org.eventb.core.axiom name="internal_element2A" org.eventb.core.label="axm2" org.eventb.core.predicate="∀i,j· i∈1‥n ∧&#10;        j∈1‥n ∧&#10;        i≤j&#10;        ⇒&#10;        f(i)≤f(j)"/>
+<org.eventb.core.axiom name="internal_element3A" org.eventb.core.label="axm3" org.eventb.core.predicate="v ∈ ran(f)"/>
+<org.eventb.core.constant name="internal_element1" org.eventb.core.identifier="n"/>
+<org.eventb.core.constant name="internal_element2" org.eventb.core.identifier="f"/>
+<org.eventb.core.constant name="internal_element3" org.eventb.core.identifier="v"/>
+<org.eventb.core.axiom name="internal_element1T" org.eventb.core.label="thm1" org.eventb.core.predicate="n ≥ 1" org.eventb.core.theorem="true"/>
+<org.eventb.core.carrierSet name="_eGkdIQ_sEeOm9bWmiVwa5g" org.eventb.core.identifier="MYGAGASET"/>
+</org.eventb.core.contextFile>

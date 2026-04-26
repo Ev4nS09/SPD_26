@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<org.eventb.core.machineFile org.eventb.core.configuration="org.eventb.core.fwd" org.eventb.texttools.text_lastmodified="1361818393351" org.eventb.texttools.text_representation="machine bin_m0 sees bin_c0&#10;&#10;variables r&#10;&#10;invariants&#10;  @inv1 r ∈ ℕ&#10;&#10;events&#10;  event INITIALISATION&#10;    then&#10;      @act1 r :∈ ℕ&#10;  end&#10;&#10;  event found&#10;    where&#10;      @grd1 r ∈ 1‥n&#10;      @grd2 f(r) = v&#10;  end&#10;&#10;  anticipated event progress&#10;    then&#10;      @act1 r :∈ ℕ&#10;  end&#10;end&#10;" version="5">
+<org.eventb.core.seesContext name="_OZdYkH90EeKVxu6rcf2ekw" org.eventb.core.target="bin_c0"/>
+<org.eventb.core.variable name="internal_element1" org.eventb.core.identifier="r"/>
+<org.eventb.core.invariant name="internal_element1I" org.eventb.core.label="inv1" org.eventb.core.predicate="r ∈ ℕ"/>
+<org.eventb.core.event name="internal_evt1" org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="INITIALISATION">
+<org.eventb.core.action name="internal_element1" org.eventb.core.assignment="r :∈ ℕ" org.eventb.core.label="act1"/>
+</org.eventb.core.event>
+<org.eventb.core.event name="internal_element2" org.eventb.core.convergence="2" org.eventb.core.extended="false" org.eventb.core.label="progress">
+<org.eventb.core.action name="internal_element1" org.eventb.core.assignment="r :∈ ℕ" org.eventb.core.label="act1"/>
+</org.eventb.core.event>
+<org.eventb.core.event name="_OZd_oH90EeKVxu6rcf2ekw" org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="found">
+<org.eventb.core.guard name="_OZd_oX90EeKVxu6rcf2ekw" org.eventb.core.label="grd1" org.eventb.core.predicate="r ∈ 1‥n"/>
+<org.eventb.core.guard name="_OZd_on90EeKVxu6rcf2ekw" org.eventb.core.label="grd2" org.eventb.core.predicate="f(r) = v"/>
+</org.eventb.core.event>
+</org.eventb.core.machineFile>

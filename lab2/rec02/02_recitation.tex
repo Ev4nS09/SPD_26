@@ -1,0 +1,456 @@
+\documentclass{article} % set_input_method
+\usepackage{hyperref}
+\usepackage{graphicx}        % standard LaTeX graphics tool
+\usepackage{enumitem}
+\usepackage{bsymb}
+\usepackage{xspace}
+\newcommand{\ebop}[1]{\textrm{\bfseries #1}}
+
+\newcommand{\eb}{\textsf{Event-B}\xspace}
+\newcommand{\jml}{\textsf{JML}\xspace}
+\newcommand{\ebtj}{\textsf{Event\-B\-2\-Java}\xspace}
+\newcommand{\javacode}[1]{\texttt{#1}}
+
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\newcommand{\continuation}{\rotatebox[origin=c]{90}{$\curvearrowleft$}}
+\newcommand{\continuationR}{\rotatebox[origin=c]{-90}{$\curvearrowright$}}
+
+\newcommand{\lcb}{{\tt {\char '173}}}
+\newcommand{\rcb}{{\tt {\char '175}}}
+
+\usepackage{xcolor}
+
+\definecolor{darkgreen}{rgb}{0,0.6,0}
+\definecolor{darkblue}{rgb}{0,0,0.55}
+\definecolor{darkred}{rgb}{0.4,0.0,0}
+\definecolor{darkgray}{rgb}{0.66,0.66,0.66}
+\definecolor{darkpink}{rgb}{0.91, 0.33, 0.5}
+\definecolor{lightgray}{rgb}{0.95,0.95,0.92}
+\definecolor{darkpurple}{rgb}{0.59, 0.44, 0.84}
+
+\definecolor{pred}{rgb}{0.6,0,0}
+\definecolor{pgrey}{rgb}{0.75,0.75,0.75}
+
+\newcommand{\ebkeyw}[1]{\textcolor{pred}{\textsf{#1}}}
+\newcommand{\ebtag}[1]{\textcolor{pgrey}{\textsf{\bf #1}}}
+\newcommand{\ebcmt}[1]{\textcolor{pgrey}{\textsf{\it #1}}}
+\newcommand{\ebcode}[1]{\textsf{#1}}
+\newcommand{\ebsets}[1]{\textcolor{darkgreen}{\textsf{#1}}}
+\newcommand{\ebcons}[1]{\textcolor{darkblue}{\textsf{#1}}}
+
+ \oddsidemargin 0pt % -10.4mm
+ \evensidemargin 0pt % -10.4mm
+ % \marginparwidth 0pts
+ \marginparsep 0pt
+ \topmargin 0mm % -10.4mm
+ \headheight 0pt
+ \headsep 0pt
+ \textheight 232mm % 257.2mm
+ \textwidth 165mm % 169.2mm
+ \footskip 25pt %
+
+
+\begin{document}
+
+\begin{center}
+\rule{\textwidth}{.0075in} \\
+\rule[3mm]{\textwidth}{.0075in}\\
+
+Universidade do Algarve\hfill Parallel and Distributed Systems \hfill 2026\\[3ex]
+
+{\Large\bf HW1: ~First Refinement of Facebook} \\[3ex]
+
+\vspace*{0.30cm} Nome: 
+  \raisebox{.2ex}{\makebox[0pt][l]{}}{\line(1,0){260}} \ %
+  \textnumero:\line(1,0){50}
+
+\rule{\textwidth}{.0075in} \\
+\rule[3mm]{\textwidth}{.0075in} \\
+\end{center}
+
+\bigskip
+
+\noindent
+\textbf{Goal.} The main goal of this lab is to expose students to the challenges of formal modelling distributed and concurrent system. The lab focuses on the use of mathematical logic and predicate calculus to model a complex system such as Facebook.
+
+
+\section{Before anything else}
+\label{sec_before}
+
+
+\begin{enumerate}[leftmargin=*, label=(\textbf{\alph*}), itemsep=-5pt]
+\item The document \texttt{cataño\_\-book\_\-chapter01.\-pdf} gives a short introduction to Event-B. Read that document.
+  %
+\item The document \texttt{recitation01\_\-prelude.\-pdf} gives a short introduction to the mathematical notation used by the Event-B language. Read that document. In particular, Section 2.3 introduces relations and functions, and Figure 2.1 presents an inclusion hierarchy of the different types of functions.
+  %
+\item Read the slides of this week: the file \texttt{04\_\-poporo.\-pdf} is available on Tutoria.
+  %
+\item The file \texttt{bsymb.py} file includes a list of LaTeX symbols for mathematical symbols in Event-B, e.g., relations, partial functions, total functions, surjective and injective functions, among others. Learn how to typeset those symbols in LaTeX.
+  %
+\end{enumerate}
+
+
+\section{Facebook's Event-B formal model}
+The \texttt{04\_\-poporo.\-pdf} slide deck discusses the formal modelling of Facebook in Event-B. In particular, Slide 14 shows the whole \textsf{machine} architecture of Facebook. According to it, Facebook includes an abstract machine and four refinement machines. Each machine observes something different. The abstract machine observes users, network content, and content owners. The first refinement observes permissions on network content. The second refinement machine observes friendship relations on the network. The third refinement observes the wall and comments people can make. The fourth refinement machine includes a chat room, an app for people on Facebook to chat.
+
+The abstract machine relates to functional requirements FUN-1, FUN-2, and FUN-3 in slide 10. The Event-B code related to FUN-1 is shown in slide 20. The Event-B formalisation of FUN-2 is shown in slide 22. The Event-B code of FUN-3 is shown in slide 24 and also in slide 26. Slide 24 shows the \emph{static} part of FUN-3 and slide 26 the \emph{dynamic} part of FUN-3.
+
+Facebook's first refinement machine includes requirements SEC-1, SEC-2, FUN-4, INV-1, and INV-2. However, \texttt{04\_\-poporo.\-pdf} does not include the Event-B formalisation of these requirements.
+
+
+\section{Facebook's abstract machine}
+\label{sec_abs}
+
+\subsection{Static Part} 
+\label{sec_abs_static}
+
+\begin{center}
+{\color{red!100}FUN-1}:
+\begin{tabular}{|l|} \hline
+The social network shall have users \\
+and content \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{l}
+\ebkeyw{sets}~~\ebsets{PERSON}~\ebsets{CONTENT} \\
+\ebkeyw{variables}~~person content \\ 
+\ebkeyw{invariants}\\
+~~\ebtag{@inv1}~~person $\subseteq$~\ebsets{PERSON} \\
+~~\ebtag{@inv2}~~content $\subseteq$~\ebsets{CONTENT} \\
+\end{tabular}
+\end{center}
+
+~\\ \bigskip
+
+\begin{center}
+{\color{red!100}FUN-2}:
+\begin{tabular}{|l|} \hline
+The user who uploads content shall be classified \\ as the owner of
+  the said content \\
+\hline
+\end{tabular}
+\end{center}
+%
+\begin{center}
+\begin{tabular}{l}
+\ebkeyw{variables}~~owner \\
+\ebkeyw{invariants}\\
+~~\ebtag{@inv3}~~owner $\in$ content $\tsur$ person 
+\end{tabular}
+\end{center}
+
+~\\ \bigskip
+
+\begin{center}
+{\color{red!100}FUN-3}:
+\begin{tabular}{|l|} \hline
+The users of the social network shall upload content \\
+\hline
+\end{tabular}
+\end{center}
+%
+\begin{center}
+\begin{tabular}{l}
+\ebkeyw{variables}~~page \\ 
+\ebkeyw{invariants}\\
+~~\ebtag{@inv4}~~page $\in$ content $\strel$ person \\
+\end{tabular}
+\end{center}
+
+
+\subsection{Dynamic Part}
+\label{sec_abs_dynamic}
+
+\begin{center}
+{\color{red!100}FUN-3}:
+\begin{tabular}{|l|} \hline
+The users of the social network shall upload content \\
+\hline
+\end{tabular}
+\end{center}
+%
+\begin{center}
+\begin{tabular}{l}
+\ebkeyw{event}~~upload\\
+\ebkeyw{any}~~c~~p \\ 
+\ebkeyw{where}\\
+~~\ebtag{@grd1}~~p $\in$ person\\
+~~\ebtag{@grd2}~~c $\in$~\ebsets{CONTENT} $\setminus$ content\\
+\ebkeyw{then}\\
+~~\ebtag{@act1}~content $:=$ content $\cup$ \lcb{}c\rcb{}\\
+~~\ebtag{@act2}~owner $:=$ owner $\cup$ \lcb{}c $\mapsto$ p\rcb \\
+~~\ebtag{@act3}~page $:=$ page $\cup$ \lcb{}c $\mapsto$ p\rcb \\
+\ebkeyw{end}
+\end{tabular}
+\end{center}
+
+\section{Facebook's first refinement}
+\label{sec_ref}
+
+
+\noindent
+The goal of this homework assignment is to model Facebook's first refinement machine in Event-B, following the approach presented for the abstract machine in Section~\ref{sec_abs}. Therefore, based on requirements SEC-1, SEC-2, FUN-4, INV-1, and INV-2 in Slide 12 of \texttt{04\_\-poporo.\-pdf}, write below the static and the dynamic parts of the first refinement machine using Event-B syntax.
+
+
+\subsection{Static part}
+\label{sec_ref_static}
+
+\begin{center}
+{\color{red!100}SEC-1}:
+\begin{tabular}{|l|} \hline
+The users shall have controlled access to \\
+network content based on permissions\\
+\hline
+\end{tabular}
+\end{center}
+% 
+ \begin{center}
+ {\color{red!100}SEC-2}:
+ \begin{tabular}{|l|} \hline
+The following permissions (privileges) over content\\
+may be given to a user: \\
+ $i.$ the permission to view the content \\
+ $ii.$ the permission to edit the content \\
+ \hline
+ \end{tabular}
+ \end{center}
+%
+\begin{center}
+\begin{tabular}{l}
+\ebkeyw{variables}~~xxx\\
+%
+\ebkeyw{invariants}\\
+~~\ebtag{@invr1}~~xxx\\
+\end{tabular}
+ \end{center}
+%%%
+
+ ~\\
+ \bigskip
+
+%%%
+\begin{center}
+{\color{red!100}INV-1}:
+\begin{tabular}{|l|} \hline
+Users that can edit content must also be able to view it\\ \hline
+\end{tabular}
+\end{center}
+% 
+\begin{center}
+\begin{tabular}{l}
+\ebkeyw{variables}~~xxx\\
+%
+\ebkeyw{invariants}\\
+~~\ebtag{@invr3}~~xxx
+\end{tabular}
+\end{center}
+%%%
+
+
+
+ ~\\
+ \bigskip
+
+%%%
+\begin{center}
+{\color{red!100}INV-2}:
+\begin{tabular}{|l|} \hline
+The owner of some content has all the permissions on it \\ \hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{l}
+%
+\ebkeyw{invariants}\\
+~~\ebtag{@invr4}~~xxx
+\end{tabular}
+\end{center}
+%%%
+
+\subsection{Dynamic part}
+
+
+%%%
+\begin{center}
+{\color{red!100}FUN-4}:
+\begin{tabular}{|l|} \hline
+Users might choose what content available to them \\ is viewed by them \\
+\hline
+\end{tabular}
+\end{center}
+%
+\begin{center}
+\begin{tabular}{l}
+\ebkeyw{event}~~grant\_view\_permission\\
+\ebkeyw{any}~~xxx\\
+\ebkeyw{where}\\
+ ~~\ebtag{@grd1}~~xxx\\
+  \ebkeyw{then}\\
+ ~~\ebtag{@act1} xxx\\
+  \ebkeyw{end} 
+\end{tabular}
+\end{center} 
+%%%
+
+
+\section{Questions}
+
+{\bf Answers that merely restate invariants or requirements, without describing concrete states or behaviours of the student's model, will receive no credit (grade 0 for that answer).  } \\ \medskip
+
+{\bf Before answering these questions, make sure you have completed the Event-B formal model in Section~\ref{sec_ref} and read Section~\ref{sec_before}. Your answer cannot use Event-B quantifiers such as $\forall$ or $\exists$. Any answer that uses these quantifiers will be graded 0.} \\
+
+\begin{enumerate}[leftmargin=*, label=\textbf{Q\arabic*}, itemsep=-5pt]
+\item \textbf{(SEC-1, SEC-2).} \textbf{(1 point)} Either $(i)$ explain
+  the limitations of these invariants (what these invariants do not guarantee) or $(ii)$
+  explain one concrete system state (that is, values of relevant variables) that would satisfy all other invariants but would be excluded by the Event-B invariants you introduced to encode SEC-1 and SEC-2. Explain why that state violates the intent of requirements SEC-1 and SEC-2. \\
+  {\color{blue}Your answer goes here. \\
+  }
+%
+\item \textbf{(INV-1).} \textbf{(1 point)} Explain one concrete system state (that is, values of relevant variables) that would satisfy all other invariants but would be excluded by this invariant. Explain why that state violates the intent of invariant {INV-1}. \\ 
+  {\color{blue}Your answer goes here.  \\
+    }
+%
+  \item \textbf{(INV-2).} \textbf{(1 point)} Explain one concrete system state (that is, values of relevant variables) that would satisfy all other invariants but would be excluded by this invariant. Explain why that state violates the intent of invariant {INV-2}. \\ 
+  {\color{blue}Your answer goes here.  \\
+    }
+%
+  \item \textbf{(FUN-4).} \textbf{(2 points)} Slide 28 of the file \texttt{04\_\-poporo.\-pdf} discusses a correctness condition of the abstract machine (model) of Facebook. It discusses the invariant proof obligation that action \ebtag{act2} generates with respect to the invariant \ebtag{inv3}. The structure (template) of the proof obligation for invariant preservation is shown in Slide 29 of \texttt{04\_\-poporo.\-pdf}, and the actual invariant proof obligation for \ebtag{act2} is shown in Slide 30. Slide 32 explains why this proof obligation is satisfied.
+
+    Now, consider the invariant preservation proof obligation generated by a hypothetical invariant \ebtag{invr6} \ebcode{viewp} $\subseteq$ \ebcode{page} that says that ``the view permissions on network content are a subset of the people's contents''. FUN-4's Event-B encoding generates an invariant proof obligation in the same style of the Slide 30. FUN-4's Event-B encoding is an event that includes guards and actions.
+
+\begin{enumerate}[leftmargin=*, label=(\textbf{\alph*}), itemsep=-5pt]
+\item \textbf{(1 point)}. Describe one concrete situation (in terms of the system state before and after the event execution) in which the invariant proof obligation for FUN-4 would fail if the event actions or the event guards were weakened. \\
+  {\color{blue}Your answer goes here.  \\ 
+  }
+  \item \textbf{(1 point)}. Explain why the Event-B encoding of FUN-4 succeeds in your current model, by referring to what the event modifies and what it leaves unchanged. \\
+  {\color{blue}Your answer goes here.}  \\ 
+    \end{enumerate}  
+\end{enumerate}
+
+
+\section*{Grading Rubric}
+
+\subsection*{General rule (applies to all questions)}
+
+An answer receives \textbf{automatic 0} if it:
+\begin{itemize}
+  \item restates an invariant or requirement verbatim;
+  \item uses only generic language (e.g., ``ensures correctness'', ``prevents violation'');
+  \item does not describe a concrete system state or a before--after situation;
+  \item does not align with the student’s own Event-B model.
+\end{itemize}
+
+\bigskip
+
+\subsection*{Q1 --- (SEC-1, SEC-2) }
+
+\noindent
+\textbf{Full credit (1.0)}
+\begin{itemize}
+  \item Describes a concrete system state (explicit variable values or relations).
+  \item The state satisfies all other invariants.
+  \item The state contradicts the intended interpretation of permissions expressed by
+    the requirements. 
+  \item The explanation explicitly links the state to the intent of SEC-1 and SEC-2.
+\end{itemize}
+
+\noindent
+\textbf{Partial credit (0.5)}
+\begin{itemize}
+  \item The state is concrete but the explanation is vague; \textbf{or}
+  \item The explanation is correct but the state is underspecified.
+\end{itemize}
+
+\noindent
+\textbf{No credit (0.0)}
+\begin{itemize}
+\item Restates SEC-1 or SEC-2.
+\item Refers to permissions or security properties without describing a concrete system state.
+  \item Uses generic security-related language.
+\end{itemize}
+
+\bigskip
+
+\subsection*{Q2 / Q3 --- (INV-1, INV-2)}
+
+\noindent
+\textbf{Full credit (1.0)}
+\begin{itemize}
+  \item Describes a concrete system state violating exactly the given invariant;
+  \item The state satisfies all other invariants;
+  \item The explanation shows understanding of why the invariant is necessary.
+\end{itemize}
+
+\noindent
+\textbf{Partial credit (0.5)}
+\begin{itemize}
+  \item A concrete state is given, but it:
+    \begin{itemize}
+      \item violates multiple invariants, or
+      \item is accompanied by a shallow explanation.
+    \end{itemize}
+\end{itemize}
+
+\noindent
+\textbf{No credit (0.0)}
+\begin{itemize}
+  \item Rephrases the invariant;
+  \item Talks about ``consistency'' or ``correctness'' without describing a state.
+\end{itemize}
+
+\bigskip
+
+\subsection*{Q4(a) --- (FUN-4 weakening)}
+
+\noindent
+\textbf{Full credit (1.0)}
+\begin{itemize}
+  \item Describes both the before and after system states;
+  \item Identifies what is weakened (guard or action);
+  \item Clearly explains why invariant preservation would fail.
+\end{itemize}
+
+\noindent
+\textbf{Partial credit (0.5)}
+\begin{itemize}
+  \item Correct intuition is given, but the before--after distinction is missing.
+\end{itemize}
+
+\noindent
+\textbf{No credit (0.0)}
+\begin{itemize}
+  \item Mentions that a ``proof obligation fails'' without explanation;
+  \item Restates the invariant-preservation template.
+\end{itemize}
+
+\bigskip
+
+\subsection*{Q4(b) --- (FUN-4 success)}
+
+\noindent
+\textbf{Full credit (1.0)}
+\begin{itemize}
+  \item Refers explicitly to what the event modifies;
+  \item Refers explicitly to what the event leaves unchanged;
+  \item Explains why this is sufficient to preserve the invariant.
+\end{itemize}
+
+\noindent
+\textbf{Partial credit (0.5)}
+\begin{itemize}
+  \item Reasoning is correct but generic;
+  \item Missing reference to variables that remain unchanged.
+\end{itemize}
+
+\noindent
+\textbf{No credit (0.0)}
+\begin{itemize}
+  \item States ``because the guards ensure the invariant'';
+  \item Provides only a template-level explanation.
+\end{itemize}
+
+\end{document}
