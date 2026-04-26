@@ -8,34 +8,57 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/time.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
-#include <math.h>
+#include <unistd.h>
 
-double rtc()
+void empty(){}
+
+int main(int argc, char* argv[])
 {
-        struct timeval time;
-        gettimeofday(&time,NULL);
-        return ( (double)(time.tv_sec*1000000+time.tv_usec)/1000000 );
+    if(argc >= 2 && ( argv[1][0] < '0' || argv[1][0] > '9'))
+    {
+        fprintf(stderr, "Usage: %s <positive_integer>\n", argv[0]);
+        exit(1);
+    }
+
+    
+
+    int iterations = argc >= 2 ? atoll(argv[1]) : 1;
+    long double elapsed = 0;
+    struct timespec start, stop;
+    int pid = 0;
+
+    int x = 1;
+
+    for(int i = 0; i < iterations; i++)
+    {	
+        clock_gettime(CLOCK_REALTIME, &start);
+
+        //pid = getpid();
+
+        empty();
+
+        //printf("Hello World\n");
+
+        
+        /*for(long j = 0; j < 2000000; j++)
+        {
+           int t = j % 2; 
+        }*/
+        
+        clock_gettime(CLOCK_REALTIME, &stop);
+
+        //elapsed equals miliseconds
+        //elapsed += (double)(stop.tv_sec - start.tv_sec) + (double)(stop.tv_nsec - start.tv_nsec) / 1000000.0;
+
+
+        //elapsed equals nano seconds
+        elapsed += (double)(stop.tv_nsec - start.tv_nsec);
+    }
+
+    printf("Elapsed time: Loop time = %8f\n",(double) elapsed / iterations);
+
+    exit(0);
 }
-
-int main()
-{
-        double elapsed, rtc();
-        int t;
-	
-        elapsed=rtc();
-		/* Operation to be timed here */
-                for(long i=0; i<2000000; i++)
-                        t = i mod(2);
-		/* Operation to be timed here */
-
-        elapsed=rtc()-elapsed;
-
-        printf( "   Elapsed time: Loop time = %8f  \n",	elapsed );
-
-        exit (0);
-}
-
-
-
