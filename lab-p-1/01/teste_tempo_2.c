@@ -32,9 +32,9 @@ int main(int argc, char* argv[])
 
     int x = 1;
 
+    clock_gettime(CLOCK_REALTIME, &start);
     for(int i = 0; i < iterations; i++)
     {	
-        clock_gettime(CLOCK_REALTIME, &start);
 
         //pid = getpid();
 
@@ -48,15 +48,16 @@ int main(int argc, char* argv[])
            int t = j % 2; 
         }*/
         
-        clock_gettime(CLOCK_REALTIME, &stop);
 
         //elapsed equals miliseconds
         //elapsed += (double)(stop.tv_sec - start.tv_sec) + (double)(stop.tv_nsec - start.tv_nsec) / 1000000.0;
 
 
         //elapsed equals nano seconds
-        elapsed += (double)(stop.tv_nsec - start.tv_nsec);
     }
+    clock_gettime(CLOCK_REALTIME, &stop);
+
+        elapsed += (double)(stop.tv_nsec - start.tv_nsec);
 
     printf("Elapsed time: Loop time = %8f\n",(double) elapsed / iterations);
 
