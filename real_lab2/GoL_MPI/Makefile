@@ -43,7 +43,7 @@ default: all
 all: $(PROGRAM) 
 
 $(PROGRAM): $(OBJS)
-	$(CC) -o $(PROGRAM) $(SRCS) $(CFLAGS) $(LDFLAGS)
+	$(CC)  -o  $(PROGRAM) $(SRCS) $(CFLAGS) $(LDFLAGS)
 
 clean:
 	/bin/rm -f $(OBJS) $(PROGRAM)
