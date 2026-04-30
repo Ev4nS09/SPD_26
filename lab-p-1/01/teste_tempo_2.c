@@ -30,36 +30,25 @@ int main(int argc, char* argv[])
     struct timespec start, stop;
     int pid = 0;
 
-    int x = 1;
 
     clock_gettime(CLOCK_REALTIME, &start);
-    for(int i = 0; i < iterations; i++)
-    {	
 
-        //pid = getpid();
+        pid = getpid();
 
-        empty();
+    clock_gettime(CLOCK_REALTIME, &stop);
 
-        //printf("Hello World\n");
 
-        
-        /*for(long j = 0; j < 2000000; j++)
-        {
-           int t = j % 2; 
-        }*/
-        
+    elapsed += (double)(stop.tv_nsec - start.tv_nsec);
+
+    printf("Elapsed time: Loop time = %8f\n",(double) elapsed / iterations);
+
+    exit(0);
+}
+
 
         //elapsed equals miliseconds
         //elapsed += (double)(stop.tv_sec - start.tv_sec) + (double)(stop.tv_nsec - start.tv_nsec) / 1000000.0;
 
 
         //elapsed equals nano seconds
-    }
-    clock_gettime(CLOCK_REALTIME, &stop);
-
-        elapsed += (double)(stop.tv_nsec - start.tv_nsec);
-
-    printf("Elapsed time: Loop time = %8f\n",(double) elapsed / iterations);
-
-    exit(0);
-}
+        //
