@@ -11,6 +11,8 @@ Updated Summer 2010, Tiago Sommer Damasceno and
 #ifndef BCCD_LIFE_H
 #define BCCD_LIFE_H
 
+#include <mpi.h>
+
 #include "Defaults.h" // For Life's constants
 
 #include <time.h>     // For seeding random
@@ -18,9 +20,7 @@ Updated Summer 2010, Tiago Sommer Damasceno and
 #include <stdbool.h>  // For true/false
 #include <getopt.h>   // For argument processing
 #include <stdio.h>    // For file i/o
-#include <unistd.h>
-#include <string.h>
-#include <mpi.h>
+
 
 int               init (struct life_t * life, int * c, char *** v);
 void        eval_rules (struct life_t * life);
@@ -74,18 +74,11 @@ void eval_rules (struct life_t * life) {
 
 	int ncols = life->ncols;
 	int nrows = life->nrows;
-    int rank = life->rank;
-    int size = life->size;
-    int cols_per_proc = ncols / size;
 
 	int ** grid      = life->grid;
 	int ** next_grid = life->next_grid;
 
-    int start = 1 + rank * cols_per_proc;
-    int end = start + cols_per_proc <= ncols ? start + cols_per_proc : ncols + 1; 
-     if (rank == size - 1 && end < ncols + 1)
-        end = ncols + 1;   
-    for (i = start; i < end; i++) {
+	for (i = 1; i <= ncols; i++) {
 		for (j = 1; j <= nrows; j++) {
 			neighbors = 0;
 
@@ -104,8 +97,7 @@ void eval_rules (struct life_t * life) {
 				next_grid[i][j] = grid[i][j]+1;
 		}
 	}
-    MPI_Barrier(MPI_COMM_WORLD);
-} 
+}
 
 /*
 	copy_bounds()
@@ -176,28 +168,14 @@ void copy_bounds (struct life_t * life) {
 */
 void update_grid (struct life_t * life) {
 	int i,j;
-	
 	int ncols = life->ncols;
 	int nrows = life->nrows;
-    int size = life->size;
-    int cols_per_proc = ncols / size;
-
 	int ** grid      = life->grid;
 	int ** next_grid = life->next_grid;
 
-	//Broadcast
-    for (i = 1; i <= ncols; i++)
-    {
-        int col_rank = (i - 1) / cols_per_proc < size ? (i - 1) / cols_per_proc : size - 1;
-        MPI_Bcast(next_grid[i], nrows + 2, MPI_INT, col_rank, MPI_COMM_WORLD);
-    }
-
-	//Copy local results
-	for (i = 0; i < ncols + 2; i++)
-		for (j = 0; j < nrows + 2; j++)
+	for (i = 0; i < ncols+2; i++)
+		for (j = 0; j < nrows+2; j++)
 			grid[i][j] = next_grid[i][j];
-
-	MPI_Barrier(MPI_COMM_WORLD);
 }// END update_grid()
 
 /*
