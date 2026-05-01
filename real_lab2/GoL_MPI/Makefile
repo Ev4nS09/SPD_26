@@ -26,7 +26,6 @@ LIBS += -lmpi
 #################### 
 
 ifndef NO_X11
-LIBS     += -lX11
 LDFLAGS  += -L/usr/X11R6/lib
 else
 CFLAGS   += -DNO_X11
