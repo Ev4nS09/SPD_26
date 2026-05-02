@@ -24,12 +24,12 @@ do
     echo '' > $tmp_file
     echo '' > $time_file
 
-    for (( gen=0; gen<=$4; gen+=1 ))
+    for (( trial=0; trial<=$4; trial+=1 ))
     do
         (time mpiexec -v --host fct-deei-linux:1 --host fct-deei-aval:1 -np 2 -wd /home/a76943/SPD_26/GoL_MPI ./GoL_MPI/Life --no-display -r $m_size -c $m_size -g 128)  |& grep "real" | sed 's/,/./' >> $tmp_file
     done
 
-    ./bin/make_time_file $tmp_file $time_file
+    ./bin/make_time_file $tmp_file $time_file $4
 
     rm $tmp_file
 
