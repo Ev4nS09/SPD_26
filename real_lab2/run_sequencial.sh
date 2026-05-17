@@ -23,14 +23,19 @@ do
     echo '' > $tmp_file
     echo '' > $time_file
 
-    input="inputs/example_spaceships.in"
-
     for (( trial=0; trial<=$4; trial+=1 ))
     do
-        (time ./GoL_Serial/Life --no-display -r $m_size -c $m_size -g 128) |& grep "real" | sed 's/,/./' >> $tmp_file
+        (time ./GoL_Serial/Life --no-display -r $m_size -c $m_size -g 512 -i $5) 2>&1 | (head -n1; grep "real") | sed 's/,/./' >> $tmp_file
     done
 
     ./bin/make_time_file $tmp_file $time_file $4
+
+    if [[ $? == 1 ]]
+    then
+        rm $time_file
+        m_size=$m_size-$3
+        echo "Error: standard deviation too high, redoing game of life..."
+    fi
 
     rm $tmp_file
 done

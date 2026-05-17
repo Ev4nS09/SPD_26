@@ -15,7 +15,7 @@ CC        = mpicc
 
 
 LIBS     += -lm
-CFLAGS   +=  
+CFLAGS   += -fopenmp 
 LDFLAGS  += $(LIBS)
 PROGRAM   = Life
 SRCS      = Life.c

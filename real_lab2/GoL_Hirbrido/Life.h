@@ -1,17 +1,19 @@
-/*******************************************
-Life 1.0
+/*************************************************
+MPI Life 1.0
 Copyright 2002, David Joiner and
   The Shodor Education Foundation, Inc.
 Updated 2010, Andrew Fitz Gibbon and
   The Shodor Education Foundation, Inc.
 Updated Summer 2010, Tiago Sommer Damasceno and
   The Shodor Education Foundation, Inc.
-*******************************************/
+*************************************************/
 
 #ifndef BCCD_LIFE_H
 #define BCCD_LIFE_H
 
-#include "XLife.h"    // For display routines
+#include <mpi.h>
+#include <omp.h>	  // For parallelization.
+
 #include "Defaults.h" // For Life's constants
 
 #include <time.h>     // For seeding random
@@ -19,47 +21,47 @@ Updated Summer 2010, Tiago Sommer Damasceno and
 #include <stdbool.h>  // For true/false
 #include <getopt.h>   // For argument processing
 #include <stdio.h>    // For file i/o
-#include <string.h>
-#include <unistd.h>
+
 
 int               init (struct life_t * life, int * c, char *** v);
 void        eval_rules (struct life_t * life);
 void       copy_bounds (struct life_t * life);
 void       update_grid (struct life_t * life);
-void          throttle (struct life_t * life);
 void    allocate_grids (struct life_t * life);
 void        init_grids (struct life_t * life);
 void        write_grid (struct life_t * life);
 void        free_grids (struct life_t * life);
 double     rand_double ();
 void    randomize_grid (struct life_t * life, double prob);
+void       seed_random (int rank);
 void           cleanup (struct life_t * life);
 void        parse_args (struct life_t * life, int argc, char ** argv);
 void             usage ();
 
 /*
 	init_env()
-		Initialize runtime environment.
+		Initialize runtime environment and initializes MPI.
 */
 int init (struct life_t * life, int * c, char *** v) {
 	int argc          = *c;
 	char ** argv      = *v;
+	life->rank        = 0;
 	life->size        = 1;
-	life->throttle    = -1;
 	life->ncols       = DEFAULT_SIZE;
 	life->nrows       = DEFAULT_SIZE;
 	life->generations = DEFAULT_GENS;
-	life->do_display  = DEFAULT_DISP;
 	life->infile      = NULL;
 	life->outfile     = NULL;
 
-	srandom(time(NULL));
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &life->rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &life->size);
+
+	seed_random(life->rank);
 
 	parse_args(life, argc, argv);
 
 	init_grids(life);
-
-    printf("rows: %d, cols: %d\n", life->nrows, life->ncols);
 
 }
 
@@ -77,6 +79,7 @@ void eval_rules (struct life_t * life) {
 	int ** grid      = life->grid;
 	int ** next_grid = life->next_grid;
 
+	#pragma omp parallel for private(neighbors,j,k,l)
 	for (i = 1; i <= ncols; i++) {
 		for (j = 1; j <= nrows; j++) {
 			neighbors = 0;
@@ -110,15 +113,39 @@ void eval_rules (struct life_t * life) {
 void copy_bounds (struct life_t * life) {
 	int i,j;
 
+	int rank  = life->rank;
 	int size  = life->size;
 	int ncols = life->ncols;
 	int nrows = life->nrows;
 
 	int ** grid = life->grid;
 
+	MPI_Status status;
+	int left_rank  = (rank-1+size) % size;
+	int right_rank = (rank+1) % size;
+
+	enum TAGS {
+		TOLEFT,
+		TORIGHT
+	};
+
+	//	Some MPIs deadlock if a single process tries 
+	//to communicate with itself
+	if (size != 1) {
+		// copy sides to neighboring processes
+		MPI_Sendrecv(grid[1], nrows+2, MPI_INT, left_rank, TOLEFT,
+			grid[ncols+1], nrows+2, MPI_INT, right_rank, TOLEFT,
+			MPI_COMM_WORLD, &status);
+
+		MPI_Sendrecv(grid[ncols], nrows+2, MPI_INT, right_rank,
+			TORIGHT, grid[0], nrows+2, MPI_INT, left_rank,
+			TORIGHT, MPI_COMM_WORLD, &status);
+	}
+
 	// Copy sides locally to maintain periodic boundaries
 	// when there's only one process
 	if (size == 1) {
+		#pragma omp parallel for private(i,j)
 		for (j = 0; j < nrows+2; j++) {
 			grid[ncols+1][j] = grid[1][j];
 			grid[0][j] = grid[ncols][j];
@@ -132,11 +159,12 @@ void copy_bounds (struct life_t * life) {
 	grid[ncols+1][nrows+1] = grid[ncols+1][1];
 
 	// copy top and bottom
+	#pragma omp parallel for private(i)
 	for (i = 1; i <= ncols; i++) {
 		grid[i][0]       = grid[i][nrows];
 		grid[i][nrows+1] = grid[i][1];
 	}
-}
+}// END copy_bounds()
 
 /*
 	update_grid()
@@ -149,25 +177,12 @@ void update_grid (struct life_t * life) {
 	int ** grid      = life->grid;
 	int ** next_grid = life->next_grid;
 
+
+	#pragma omp parallel for private(i,j)
 	for (i = 0; i < ncols+2; i++)
 		for (j = 0; j < nrows+2; j++)
 			grid[i][j] = next_grid[i][j];
-}
-
-/*
-	throttle()
-		Slows down the simulation to make X display easier to watch.
-		Has no effect when run with --no-display.
-*/
-void throttle (struct life_t * life) {
-	unsigned int delay;
-	int t = life->throttle;
-
-	if (life->do_display && t != -1) {
-		delay = 1000000 * 1/t;
-		usleep(delay);
-	}
-}
+}// END update_grid()
 
 /*
 	allocate_grids()
@@ -181,11 +196,13 @@ void allocate_grids (struct life_t * life) {
 	life->grid      = (int **) malloc(sizeof(int *) * (ncols+2));
 	life->next_grid = (int **) malloc(sizeof(int *) * (ncols+2));
 
+
+	#pragma omp parallel for private(i,j)
 	for (i = 0; i < ncols+2; i++) {
 		life->grid[i]      = (int *) malloc(sizeof(int) * (nrows+2));
 		life->next_grid[i] = (int *) malloc(sizeof(int) * (nrows+2));
 	}
-}
+}// END allocate_grids()
 
 /*
 	init_grids()
@@ -202,10 +219,15 @@ void init_grids (struct life_t * life) {
 			exit(EXIT_FAILURE);
 		}
 
+		if (fscanf(fd, "%d %d\n", &life->ncols, &life->nrows) == EOF) {
+			printf("File must at least define grid dimensions!\nExiting.\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	allocate_grids(life);
 
+	#pragma omp parallel for private(i,j)
 	for (i = 0; i < life->ncols+2; i++) {
 		for (j = 0; j < life->nrows+2; j++) {
 			life->grid[i][j]      = DEAD;
@@ -223,7 +245,7 @@ void init_grids (struct life_t * life) {
 	} else {
 		randomize_grid(life, INIT_PROB);
 	}
-}
+}// END init_grids()
 
 /*
 	write_grid()
@@ -245,6 +267,8 @@ void write_grid (struct life_t * life) {
 
 		fprintf(fd, "%d %d\n", ncols, nrows);
 
+
+		#pragma omp parallel for private(i,j)
 		for (i = 1; i <= ncols; i++) {
 			for (j = 1; j <= nrows; j++) {
 				if (grid[i][j] != DEAD)
@@ -254,7 +278,7 @@ void write_grid (struct life_t * life) {
 
 		fclose(fd);
 	}
-}
+}// write_grid()
 
 /*
 	free_grids()
@@ -265,6 +289,7 @@ void free_grids (struct life_t * life) {
 	int i;
 	int ncols = life->ncols;
 
+	#pragma omp parallel for private(i)
 	for (i = 0; i < ncols+2; i++) {
 		free(life->grid[i]);
 		free(life->next_grid[i]);
@@ -272,7 +297,7 @@ void free_grids (struct life_t * life) {
 
 	free(life->grid);
 	free(life->next_grid);
-}
+}// free_grids()
 
 /*
 	rand_double()
@@ -280,7 +305,7 @@ void free_grids (struct life_t * life) {
 */
 double rand_double() {
 	return (double)random()/(double)RAND_MAX;
-}
+}// END rand_double()
 
 /*
 	randomize_grid()
@@ -292,13 +317,24 @@ void randomize_grid (struct life_t * life, double prob) {
 	int ncols = life->ncols;
 	int nrows = life->nrows;
 
+
+	#pragma omp parallel for private(i,j)
 	for (i = 1; i <= ncols; i++) {
 		for (j = 1; j <= nrows; j++) {
 			if (rand_double() < prob)
 				life->grid[i][j] = ALIVE;
 		}
 	}
-}
+}// END randomize_grid()
+
+/*
+	seed_random()
+		Seed the random number generator based on the
+		process's rank and time. Multiplier is arbitrary.
+*/
+void seed_random (int rank) {
+	srandom(time(NULL) + 100*rank);
+}// END seed_random()
 
 /*
 	cleanup()
@@ -308,10 +344,8 @@ void cleanup (struct life_t * life) {
 	write_grid(life);
 	free_grids(life);
 
-	if (life->do_display)
-		free_video(life);
-
-}
+	MPI_Finalize();
+}// cleanup()
 
 /*
 	usage()
@@ -325,16 +359,10 @@ void usage () {
 	printf("  -i|--input filename   Input file. See README for format. Default: none.\n");
 	printf("  -o|--output filename  Output file. Default: none.\n");
 	printf("  -h|--help             This help page.\n");
-	printf("  -t[N]|--throttle[=N]  Throttle display to N generations/second. Default: %d\n",
-		DEFAULT_THROTTLE);
-	printf("  -x|--display          Use a graphical display.\n");
-	printf("  --no-display          Do not use a graphical display.\n"); 
-	printf("     Default: %s\n",
-		(DEFAULT_DISP ? "do display" : "no display"));
 	printf("\nSee README for more information.\n\n");
 
 	exit(EXIT_FAILURE);
-}
+}// usage()
 
 /*
 	parse_args()
@@ -351,10 +379,6 @@ void parse_args (struct life_t * life, int argc, char ** argv) {
 		if (opt == -1) break;
 
 		switch (opt) {
-			case 0:
-				if (strcmp("no-display", long_opts[opt_index].name) == 0)
-					life->do_display = false;
-				break;
 			case 'c':
 				life->ncols = strtol(optarg, (char**) NULL, 10);
 				break;
@@ -364,20 +388,11 @@ void parse_args (struct life_t * life, int argc, char ** argv) {
 			case 'g':
 				life->generations = strtol(optarg, (char**) NULL, 10);
 				break;
-			case 'x':
-				life->do_display = true;
-				break;
 			case 'i':
 				life->infile = optarg;
 				break;
 			case 'o':
 				life->outfile = optarg;
-				break;
-			case 't':
-				if (optarg != NULL)
-					life->throttle = strtol(optarg, (char**) NULL, 10);
-				else
-					life->throttle = DEFAULT_THROTTLE;
 				break;
 			case 'h':
 			case '?':
@@ -397,10 +412,7 @@ void parse_args (struct life_t * life, int argc, char ** argv) {
 			life->ncols       = strtol(argv[2], (char**) NULL, 10);
 		if (argc > 3)
 			life->generations = strtol(argv[3], (char**) NULL, 10);
-		if (argc > 4)
-			// 0 interpreted as false, all other values true
-			life->do_display  = strtol(argv[4], (char**) NULL, 10);
 	}
-}
+}// parse_args()
 
 #endif

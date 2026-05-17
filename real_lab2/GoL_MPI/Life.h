@@ -56,13 +56,6 @@ int init (struct life_t * life, int * c, char *** v) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &life->rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &life->size);
 
-
-    int len;
-    char hostname[MPI_MAX_PROCESSOR_NAME];
-    MPI_Get_processor_name(hostname, &len);
-
-    printf("Hello from %s\n!", hostname);
-
 	seed_random(life->rank);
 
 	parse_args(life, argc, argv);
@@ -133,7 +126,6 @@ void copy_bounds (struct life_t * life) {
 		TOLEFT,
 		TORIGHT
 	};
-
 
 	//	Some MPIs deadlock if a single process tries 
 	//to communicate with itself
@@ -219,10 +211,6 @@ void init_grids (struct life_t * life) {
 			exit(EXIT_FAILURE);
 		}
 
-		if (fscanf(fd, "%d %d\n", &life->ncols, &life->nrows) == EOF) {
-			printf("File must at least define grid dimensions!\nExiting.\n");
-			exit(EXIT_FAILURE);
-		}
 	}
 
 	allocate_grids(life);

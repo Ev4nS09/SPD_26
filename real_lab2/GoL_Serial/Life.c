@@ -18,6 +18,7 @@ more detailed information.
 
 #include "Life.h"		// For function's definitions and instructions.
 #include "Defaults.h" 	// For Life's constants
+#include <bits/time.h>
 
 int main(int argc, char ** argv) {
 
@@ -25,6 +26,8 @@ int main(int argc, char ** argv) {
 
 	struct life_t life; //	Variable that contains: 	size, throttle, 
 						//ncols, nrows, generations, do_display, infile, outfile.     
+
+    struct timespec start, stop;
 
 	/*
 		Initializes all life's variables
@@ -35,10 +38,12 @@ int main(int argc, char ** argv) {
 		Loop containing instructions to simulate 
 		the evolution of one generation.
 	*/
-	for (count = 0; count < life.generations; count++) {
-		if (life.do_display)
-			do_draw(&life);
 
+    double time = 0;
+
+	for (count = 0; count < life.generations; count++) {
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		copy_bounds(&life);	//	Copy neighbor's states(DEAD or ALIVE) into a two dimensional
 							//array which will evaluated by the Life's rules
 
@@ -46,12 +51,20 @@ int main(int argc, char ** argv) {
 							//the cell's state to DEAD or ALIVE.
 
 		update_grid(&life);	//	Updates the old grid with the state value of each cell.
+        
+    clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
 
-		throttle(&life);	//	Slows down the simulation to make X display easier to watch.
+    time += ((double) ((long) (stop.tv_nsec - start.tv_nsec))) / 1000000;
 	}
+
 
 	cleanup(&life);			// Writes the coordinates of all the ALIVE cells into the output files
 							//and frees all the memory used by the program
+                            //
+    
+    printf("%8f\n", time / life.generations);
+;
+
 
 	exit(EXIT_SUCCESS);
 }
