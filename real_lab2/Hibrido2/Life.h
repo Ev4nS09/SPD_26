@@ -180,8 +180,16 @@ int init (struct life_t * life, int * c, char *** v) {
     free(row_counts);
     free(row_offsets);
 
+
     /* ---- Step 4: initialise the local grid ---- */
     init_grids(life);
+
+    #pragma omp parallel for
+for (int test = 0; test < 8; test++) {
+    printf("Thread %d of %d running on rank %d\n",
+           omp_get_thread_num(), omp_get_num_threads(), life->rank);
+}
+fflush(stdout);
 
     return 0;
 }
@@ -305,11 +313,10 @@ void copy_bounds (struct life_t * life) {
      * exchange so that corner cells are correct.
      */
     #pragma omp parallel for private(j)
-    for (j = 0; j < nrows + 2; j++) {
-        grid[0][j]        = grid[ncols][j];   /* left ghost  = real right  */
-        grid[ncols+1][j]  = grid[1][j];       /* right ghost = real left   */
+    for (i = 0; i < nrows + 2; i++) {
+        grid[i][0]        = grid[i][ncols];    // left ghost  = real right
+        grid[i][ncols+1]  = grid[i][1];        // right ghost = real left
     }
-
     /*
      * NOTE: top (row 0) and bottom (row nrows+1) ghost rows are
      * NOT set here — they come from exchange_halos().
