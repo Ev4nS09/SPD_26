@@ -231,7 +231,7 @@ void eval_rules (struct life_t * life) {
     int ** grid      = life->grid;
     int ** next_grid = life->next_grid;
 
-    #pragma omp parallel for private(neighbors,j,k,l) collapse(2) schedule(static)
+    #pragma omp parallel for private(neighbors,j,k,l)
     for (i = 1; i <= nrows; i++) {   /* iterate over LOCAL rows */
         for (j = 1; j <= ncols; j++) {
             neighbors = 0;

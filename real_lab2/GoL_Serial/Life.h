@@ -201,6 +201,10 @@ void init_grids (struct life_t * life) {
 			perror("Failed to open file for input");
 			exit(EXIT_FAILURE);
 		}
+		if (fscanf(fd, "%d %d\n", &life->ncols, &life->nrows) == EOF) {
+			printf("File must at least define grid dimensions!\nExiting.\n");
+			exit(EXIT_FAILURE);
+		}
 
 	}
 
